@@ -1,2 +1,2 @@
-# minesweeper
+# Minesweeper Game With no Original Provisory Name
 Projeto feito como trabalho final da disciplina de Redes de Computadores

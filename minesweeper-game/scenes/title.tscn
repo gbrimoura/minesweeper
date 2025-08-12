@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3 uid="uid://bgqhc6o6lpeui"]
+
+[ext_resource type="Script" uid="uid://2qn144tt12q2" path="res://scenes/title.gd" id="1_4ignj"]
+
+[node name="Title" type="CanvasLayer"]
+script = ExtResource("1_4ignj")
+
+[node name="Join" type="Button" parent="."]
+offset_left = 189.0
+offset_top = 516.0
+offset_right = 572.0
+offset_bottom = 595.0
+text = "Join"
+
+[node name="Host" type="Button" parent="."]
+offset_left = 189.0
+offset_top = 385.0
+offset_right = 572.0
+offset_bottom = 464.0
+text = "Host"
+
+[node name="TextEdit" type="TextEdit" parent="."]
+visible = false
+offset_left = 148.0
+offset_top = 291.0
+offset_right = 626.0
+offset_bottom = 340.0
+
+[node name="Back" type="Button" parent="."]
+visible = false
+offset_left = 189.0
+offset_top = 383.0
+offset_right = 570.0
+offset_bottom = 467.0
+text = "Back"
+
+[connection signal="pressed" from="Join" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="Host" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]

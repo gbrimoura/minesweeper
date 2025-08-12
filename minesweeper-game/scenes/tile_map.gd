@@ -28,9 +28,11 @@ var number_atlas : Array = generate_number_atlas()
 
 #array to store mine coordinates
 var mine_coords := []
+var flag_coords := []
 
 #toggle variable to scan nearby mines
 var scanning := false
+var clicked := false
 
 func generate_number_atlas():
 	var a := []
@@ -49,6 +51,7 @@ func new_game():
 	generate_mines()
 	generate_numbers()
 	generate_grass()
+	flag_coords = []
 	
 func generate_mines():
 	for i in range(get_parent().TOTAL_MINES):
@@ -107,29 +110,35 @@ func _input(event):
 		#check if mouse is on the game board
 		if event.position.y < ROWS * CELL_SIZE:
 			var map_pos := local_to_map(event.position)
-			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not clicked:
 				#check that there is no flag there
 				if not is_flag(map_pos):
 					#check if it is a mine
 					if is_mine(map_pos):
 						#check if it is the first click
-						if get_parent().first_click:
-							move_mine(map_pos)
-							generate_numbers()
-							process_left_click(map_pos)
+						#if get_parent().first_click:
+						#	move_mine(map_pos)
+						#	generate_numbers()
+						#	process_left_click(map_pos)
 						#otherwise end the game
-						else:
-							end_game.emit()
-							show_mines()
+						#else:
+						end_game.emit()
+						show_mines()
+						# MANDAR MENSAGEM "FIM DE JOGO"
 					else:
 						process_left_click(map_pos)
+						get_parent().get_node("HUD/PressEnter").text = "PRESS ENTER"
+						clicked = true
 			#right click places and removes flags
 			elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 				process_right_click(map_pos)
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_ENTER and clicked:
+				print(flag_coords) # MANDAR MENSAGEM COM AS COORDENADAS PARA PARCEIRO
+				clicked = false
 
 func process_left_click(pos):
 	#no longer first click
-	get_parent().first_click = false
+	#get_parent().first_click = false
 	var revealed_cells := []
 	var cells_to_reveal := [pos]
 	while not cells_to_reveal.is_empty():
@@ -158,8 +167,12 @@ func process_right_click(pos):
 		if is_flag(pos):
 			erase_cell(flag_layer, pos)
 			flag_removed.emit()
+			for i in len(flag_coords):
+				if flag_coords[i] == pos:
+					flag_coords.pop_at(i)
 		else:
 			set_cell(flag_layer, pos, tile_id, flag_atlas)
+			flag_coords.append(pos)
 			flag_placed.emit()
 
 func reveal_surrounding_cells(cells_to_reveal, revealed_cells):

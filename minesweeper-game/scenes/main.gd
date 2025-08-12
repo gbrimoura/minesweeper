@@ -21,7 +21,7 @@ func new_game():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	time_elapsed += delta
-	$HUD.get_node("Stopwatch").text = str(int(time_elapsed))
+	#$HUD.get_node("Stopwatch").text = str(int(time_elapsed))
 	$HUD.get_node("RemainingMines").text = str(remaining_mines)
 
 func end_game(result):

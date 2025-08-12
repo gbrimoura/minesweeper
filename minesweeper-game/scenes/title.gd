@@ -17,3 +17,8 @@ func _on_back_pressed() -> void:
 	$Back.hide()
 	$Join.show()
 	$Host.show()
+
+
+func _on_join_game_pressed() -> void:
+	get_parent().get_node("MultiplayerManager").ip = $TextEdit.text
+	get_parent().get_node("MultiplayerManager").join()

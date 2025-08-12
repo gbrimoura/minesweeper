@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://dww7376cibolg"]
+[gd_scene load_steps=7 format=3 uid="uid://dww7376cibolg"]
 
 [ext_resource type="Texture2D" uid="uid://fi8q2wvpqd47" path="res://assets/bg.png" id="1_muiut"]
 [ext_resource type="Script" uid="uid://4bnbl4oe1g6f" path="res://scenes/main.gd" id="1_sgikt"]
 [ext_resource type="PackedScene" uid="uid://eyxfen2vvqxo" path="res://scenes/tile_map.tscn" id="3_lemmq"]
 [ext_resource type="PackedScene" uid="uid://d05640hmpi44l" path="res://scenes/hud.tscn" id="4_lcatd"]
 [ext_resource type="PackedScene" uid="uid://01pxeovkiic5" path="res://scenes/game_over.tscn" id="5_4jsxu"]
+[ext_resource type="Script" uid="uid://dyltgtdb3mhfj" path="res://scenes/socket.gd" id="6_tefeu"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_sgikt")
@@ -19,6 +20,15 @@ offset = Vector2(375, 350)
 
 [node name="GameOver" parent="." instance=ExtResource("5_4jsxu")]
 process_mode = 2
+
+[node name="Button" type="Button" parent="."]
+offset_left = 586.0
+offset_top = 707.0
+offset_right = 730.0
+offset_bottom = 741.0
+
+[node name="Socket" type="Node" parent="."]
+script = ExtResource("6_tefeu")
 
 [connection signal="end_game" from="TileMap" to="." method="_on_tile_map_end_game"]
 [connection signal="flag_placed" from="TileMap" to="." method="_on_tile_map_flag_placed"]

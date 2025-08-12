@@ -5,6 +5,7 @@ const TOTAL_MINES : int = 20
 var time_elapsed : float
 var remaining_mines : int
 var first_click : bool
+var active_turn : bool
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

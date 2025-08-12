@@ -15,9 +15,9 @@ offset_top = 700.0
 offset_right = 475.0
 offset_bottom = 750.0
 theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = ExtResource("1_n0pdv")
 theme_override_styles/hover = ExtResource("1_n0pdv")
 theme_override_styles/pressed = ExtResource("1_n0pdv")
+theme_override_styles/normal = ExtResource("1_n0pdv")
 text = "Try Again?"
 
 [node name="Panel" type="Panel" parent="."]

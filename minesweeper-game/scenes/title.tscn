@@ -28,12 +28,21 @@ offset_bottom = 340.0
 
 [node name="Back" type="Button" parent="."]
 visible = false
-offset_left = 189.0
-offset_top = 383.0
-offset_right = 570.0
-offset_bottom = 467.0
+offset_left = 191.0
+offset_top = 513.0
+offset_right = 572.0
+offset_bottom = 597.0
 text = "Back"
+
+[node name="JoinGame" type="Button" parent="."]
+visible = false
+offset_left = 190.0
+offset_top = 383.0
+offset_right = 573.0
+offset_bottom = 462.0
+text = "Join Game"
 
 [connection signal="pressed" from="Join" to="." method="_on_join_pressed"]
 [connection signal="pressed" from="Host" to="." method="_on_host_pressed"]
 [connection signal="pressed" from="Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="JoinGame" to="." method="_on_join_game_pressed"]

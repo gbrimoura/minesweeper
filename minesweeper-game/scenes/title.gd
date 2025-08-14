@@ -8,6 +8,7 @@ func _on_host_pressed() -> void:
 
 func _on_join_pressed() -> void:
 	$TextEdit.show()
+	$JoinGame.show()
 	$Join.hide()
 	$Host.hide()
 	$Back.show()
@@ -21,4 +22,5 @@ func _on_back_pressed() -> void:
 
 func _on_join_game_pressed() -> void:
 	get_parent().get_node("MultiplayerManager").ip = $TextEdit.text
+	print(get_parent().get_node("MultiplayerManager").ip)
 	get_parent().get_node("MultiplayerManager").join()

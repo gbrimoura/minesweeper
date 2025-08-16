@@ -160,7 +160,11 @@ func _input(event):
 			var to_send = []
 			for f in flag_coords:
 				to_send.append([f.x, f.y]) # serializa como array de arrays
-			multiplayer.send_flags(to_send)
+			#multiplayer.send_flags(to_send)
+			multiplayer.socket.put_packet(JSON.stringify(multiplayer.message(
+				"UPDATE_FLAGS",
+				to_send
+			)).to_utf8_buffer())
 			clicked = false
 			turn_active = false
 		

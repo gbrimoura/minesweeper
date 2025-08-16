@@ -2,7 +2,6 @@ extends Node
 
 const PORT = 12345 # porta para comunicações do servidor
 
-#var peer = ENetMultiplayerPeer.new() # Objeto multiplayer usando a biblioteca de conexão da engine
 var socket = PacketPeerUDP.new()
 var is_host: bool = true
 var host_peer: String
@@ -12,9 +11,6 @@ func host():
 	is_host = true
 	socket.bind(PORT, "127.0.0.1")
 	socket.set_broadcast_enabled(true)
-	multiplayer.multiplayer_peer = socket 
-#	get_tree().set_network_peer(peer)
-#	multiplayer.peer_connected.connect(_on_peer_connected)
 
 func join(destiny):
 	is_host = false
@@ -24,16 +20,8 @@ func join(destiny):
 	socket.set_dest_address(host_peer, PORT)
 	socket.put_packet(JSON.stringify(message("JOIN")).to_utf8_buffer())
 	print("TRYING TO JOIN " + host_peer)
-	#socket.create_client(friend_peer, PORT)
-	#multiplayer.multiplayer_peer = socket
 
-#func _on_peer_connected(peer_id):
-	#game_peer_id = str(peer_id)
-#	print("Jogador entrou!")
-	#get_parent().get_node("HUD/PressEnter").text = game_peer_id
-#	get_parent().new_game()
-
-func message(op:String):
+func message(op:String, flags: Array = []):
 	var msg := {
 		"v": 1,
 		"op": op,
@@ -41,8 +29,13 @@ func message(op:String):
 		"to" : "nao implementado"
 	}
 	
-	if op == "ACCEPT":
-		msg["mines"] = get_parent().get_node("TileMap").mine_coords
+	match op:
+		"ACCEPT":
+			msg["mines"] = get_parent().get_node("TileMap").mine_coords
+		"START_ROUND":
+			pass
+		"UPDATE_FLAGS":
+			msg["flags"] = flags
 	
 	return msg
 
@@ -99,14 +92,6 @@ func _process(delta: float) -> void:
 		var packet_string = array_bytes.get_string_from_ascii()
 		print("Received message: ", packet_string)
 		handle_message(packet_string)
-		
-func send_flags(flags: Array):
-	var msg = {
-		"v": 1,
-		"op": "UPDATE_FLAGS",
-		"flags": flags
-	}
-	socket.put_packet(JSON.stringify(msg).to_utf8_buffer())
 
 func start_opponent_turn():
 	var msg = {

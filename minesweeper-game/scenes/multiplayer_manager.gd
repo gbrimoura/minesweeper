@@ -63,6 +63,9 @@ func handle_message(msg):
 			socket.set_dest_address(joined_peer, PORT)
 			get_parent().new_game()
 			socket.put_packet(JSON.stringify(message("ACCEPT")).to_utf8_buffer())
+			
+			await get_tree().process_frame
+			start_opponent_turn()
 		"ACCEPT":
 			host_peer = socket.get_packet_ip()
 			print(host_peer + " ACCEPTED")
@@ -70,10 +73,19 @@ func handle_message(msg):
 			get_parent().new_game()
 		"REJECT":
 			pass
+		"START_ROUND":
+			var tilemap = get_parent().get_node("TileMap")
+			tilemap.start_turn()
+			get_parent().get_node("HUD/PressEnter").text = "YOUR TURN"
 		"SEND_LOSE":
 			pass
 		"UPDATE_FLAGS":
-			pass
+			var tilemap = get_parent().get_node("TileMap")
+			tilemap.update_flags(received_message["flags"])
+			
+			await get_tree().process_frame
+			tilemap.start_turn()
+			get_parent().get_node("HUD/PressEnter").text = "YOUR TURN"
 		"SEND_COMPLETED":
 			pass
 		"SEND_WIN":
@@ -87,3 +99,18 @@ func _process(delta: float) -> void:
 		var packet_string = array_bytes.get_string_from_ascii()
 		print("Received message: ", packet_string)
 		handle_message(packet_string)
+		
+func send_flags(flags: Array):
+	var msg = {
+		"v": 1,
+		"op": "UPDATE_FLAGS",
+		"flags": flags
+	}
+	socket.put_packet(JSON.stringify(msg).to_utf8_buffer())
+
+func start_opponent_turn():
+	var msg = {
+	"v": 1,
+	"op": "START_ROUND"
+	}
+	socket.put_packet(JSON.stringify(msg).to_utf8_buffer())

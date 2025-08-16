@@ -1,41 +1,44 @@
 extends Node
 
-var PORT = 12345 # porta para comunicações do servidor
+const PORT = 12345 # porta para comunicações do servidor
 
 #var peer = ENetMultiplayerPeer.new() # Objeto multiplayer usando a biblioteca de conexão da engine
 var socket = PacketPeerUDP.new()
 var ishost: bool
-var friend_peer: String
-var game_peer_id: String
+var host_peer: String
+var joined_peer: String
 
 func host():
 	ishost = true
 	socket.bind(PORT)
+	socket.set_broadcast_enabled(true)
 	multiplayer.multiplayer_peer = socket 
 #	get_tree().set_network_peer(peer)
-	
-	multiplayer.peer_connected.connect(_on_peer_connected)
+#	multiplayer.peer_connected.connect(_on_peer_connected)
 
 func join(destiny):
 	ishost = false
-	friend_peer = destiny
-	socket.set_dest_address(friend_peer, PORT)
-	var msg : = {
-	}
+	host_peer = destiny
+	socket.bind(PORT) # Para receber mensagens
+	socket.set_broadcast_enabled(true)
+	socket.set_dest_address(host_peer, PORT)
 	socket.put_packet(JSON.stringify(message("JOIN")).to_utf8_buffer())
+	print("TRYING TO JOIN " + host_peer)
 	#socket.create_client(friend_peer, PORT)
 	#multiplayer.multiplayer_peer = socket
 
-func _on_peer_connected(peer_id):
-	game_peer_id = str(peer_id)
-	print("Jogador entrou!")
-	get_parent().get_node("HUD/PressEnter").text = game_peer_id
-	get_parent().new_game()
+#func _on_peer_connected(peer_id):
+	#game_peer_id = str(peer_id)
+#	print("Jogador entrou!")
+	#get_parent().get_node("HUD/PressEnter").text = game_peer_id
+#	get_parent().new_game()
 
 func message(op:String):
 	var msg := {
 		"v": 1,
-		"op": op
+		"op": op,
+		"from": "nao implementado",
+		"to" : "nao implementado"
 	}
 	
 	if op == "ACCEPT":
@@ -55,14 +58,14 @@ func handle_message(msg):
 	print(received_message)
 	match received_message["op"]:
 		"JOIN":
-			game_peer_id = socket.get_packet_ip()
-			print(game_peer_id)
-			socket.set_dest_address(game_peer_id, PORT)
+			joined_peer = socket.get_packet_ip()
+			print(joined_peer + " JOINED")
+			socket.set_dest_address(joined_peer, PORT)
 			get_parent().new_game()
 			socket.put_packet(JSON.stringify(message("ACCEPT")).to_utf8_buffer())
-			print(received_message)
 		"ACCEPT":
-			print(game_peer_id)
+			host_peer = socket.get_packet_ip()
+			print(host_peer + " ACCEPTED")
 			get_parent().new_game()
 		"REJECT":
 			pass

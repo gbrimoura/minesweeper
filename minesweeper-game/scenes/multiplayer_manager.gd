@@ -2,30 +2,39 @@ extends Node
 
 const PORT = 12345 # porta para comunicações do servidor
 
-var peer = ENetMultiplayerPeer.new() # Objeto multiplayer usando a biblioteca de conexão da engine
+#var peer = ENetMultiplayerPeer.new() # Objeto multiplayer usando a biblioteca de conexão da engine
+var socket = PacketPeerUDP.new()
 var ishost: bool
-var ip
+var friend_peer: String
+var game_peer_id: String
 
 func host():
-	peer.create_server(PORT)
-	multiplayer.multiplayer_peer = peer 
+	socket.bind(PORT)
+	multiplayer.multiplayer_peer = socket 
 #	get_tree().set_network_peer(peer)
 	
 	multiplayer.peer_connected.connect(_on_peer_connected)
 
-func join():
-	peer.create_client(ip, PORT)
-	multiplayer.multiplayer_peer = peer
+func join(destiny):
+	friend_peer = destiny
+	socket.set_dest_address(friend_peer, PORT)
+	socket.put_packet("JOIN".to_utf8_buffer())
+	#socket.create_client(friend_peer, PORT)
+	#multiplayer.multiplayer_peer = socket
 
 func _on_peer_connected(peer_id):
+	game_peer_id = str(peer_id)
 	print("Jogador entrou!")
+	get_parent().get_node("HUD/PressEnter").text = game_peer_id
+	get_parent().new_game()
 
 func send_message(peer, op:String, data: Dictionary):
 	var msg := {
 		"v": 1,
 		"op": op,
+		"from": friend_peer
 	}
-	var json_str = JSON.stringify(data)
+	var json_str = JSON.stringify(msg)
 	peer.put_utf8_string(json_str)
 
 func receive_message(peer):
@@ -53,3 +62,9 @@ func handle_message(msg):
 			pass
 		"ERROR":
 			pass
+
+func _process(delta: float) -> void:
+	if socket.get_available_packet_count() > 0:
+		var array_bytes = socket.get_packet()
+		var packet_string = array_bytes.get_string_from_ascii()
+		print("Received message: ", packet_string)

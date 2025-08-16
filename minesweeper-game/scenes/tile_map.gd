@@ -29,6 +29,7 @@ var number_atlas : Array = generate_number_atlas()
 #array to store mine coordinates
 var mine_coords := []
 var flag_coords := []
+var received_coords := []
 
 #toggle variable to scan nearby mines
 var scanning := false
@@ -55,12 +56,27 @@ func new_game():
 	
 func generate_mines():
 	for i in range(get_parent().TOTAL_MINES):
-		var mine_pos = Vector2i(randi_range(0, COLS - 1), randi_range(0, ROWS - 1))
-		while mine_coords.has(mine_pos):
+		var mine_pos
+		if get_parent().get_node('MultiplayerManager').is_host:
 			mine_pos = Vector2i(randi_range(0, COLS - 1), randi_range(0, ROWS - 1))
+			while mine_coords.has(mine_pos):
+				mine_pos = Vector2i(randi_range(0, COLS - 1), randi_range(0, ROWS - 1))
+		else:
+			var coord_str = received_coords[i]
+			print(coord_str)
+			coord_str = coord_str.replace("(", "")
+			coord_str = coord_str.replace(")", "")
+			coord_str = coord_str.replace(",", "")
+			print(coord_str + "PARSED")
+			var x = int(coord_str.left(coord_str.find(" ")))
+			var y = int(coord_str.right(coord_str.find(" ")))
+			print(str(x) + " " + str(y))
+			mine_pos = Vector2i(x, y)
 		mine_coords.append(mine_pos)
 		#add mine to tilemap
 		set_cell(mine_layer, mine_pos, tile_id, mine_atlas)
+	print(received_coords)
+	print(mine_coords)
 
 func generate_numbers():
 	#clear previous numbers in case the mine was moved

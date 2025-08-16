@@ -4,12 +4,12 @@ const PORT = 12345 # porta para comunicações do servidor
 
 #var peer = ENetMultiplayerPeer.new() # Objeto multiplayer usando a biblioteca de conexão da engine
 var socket = PacketPeerUDP.new()
-var ishost: bool
+var is_host: bool = true
 var host_peer: String
 var joined_peer: String
 
 func host():
-	ishost = true
+	is_host = true
 	socket.bind(PORT, "127.0.0.1")
 	socket.set_broadcast_enabled(true)
 	multiplayer.multiplayer_peer = socket 
@@ -17,7 +17,7 @@ func host():
 #	multiplayer.peer_connected.connect(_on_peer_connected)
 
 func join(destiny):
-	ishost = false
+	is_host = false
 	host_peer = destiny
 	socket.bind(PORT, "127.0.0.2") # Para receber mensagens
 	socket.set_broadcast_enabled(true)
@@ -66,6 +66,7 @@ func handle_message(msg):
 		"ACCEPT":
 			host_peer = socket.get_packet_ip()
 			print(host_peer + " ACCEPTED")
+			get_parent().get_node('TileMap').received_coords = received_message["mines"]
 			get_parent().new_game()
 		"REJECT":
 			pass

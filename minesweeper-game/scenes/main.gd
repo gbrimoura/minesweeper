@@ -50,7 +50,14 @@ func _on_tile_map_game_won():
 	end_game(1)
 	
 func _on_game_over_restart():
-	new_game()
+	$Title.show()
+	$Title/TextEdit.hide()
+	$Title/Back.hide()
+	$Title/Join.show()
+	$Title/Host.show()
+	$GameOver.hide()
+	$TileMap.hide()
+	
 
 func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ENTER:

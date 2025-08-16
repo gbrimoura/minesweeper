@@ -21,5 +21,3 @@ func _on_back_pressed() -> void:
 
 func _on_join_game_pressed() -> void:
 	get_parent().get_node("MultiplayerManager").join($TextEdit.text)
-	#print(get_parent().get_node("MultiplayerManager").ip)
-	#get_parent().get_node("MultiplayerManager").join()

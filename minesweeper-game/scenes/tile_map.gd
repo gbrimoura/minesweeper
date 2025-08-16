@@ -70,17 +70,13 @@ func generate_mines():
 			coord_str = coord_str.replace("(", "")
 			coord_str = coord_str.replace(")", "")
 			coord_str = coord_str.replace(",", "")
-			print(coord_str)
 			var parts = coord_str.split(" ")
 			var x = int(parts[0])
 			var y = int(parts[1])
-			print(str(x) + " " + str(y))
 			mine_pos = Vector2i(x, y)
 		mine_coords.append(mine_pos)
 		#add mine to tilemap
 		set_cell(mine_layer, mine_pos, tile_id, mine_atlas)
-	print(received_coords)
-	print(mine_coords)
 
 func generate_numbers():
 	#clear previous numbers in case the mine was moved
@@ -139,12 +135,7 @@ func _input(event):
 						#check if it is a mine
 						if is_mine(map_pos):
 							#check if it is the first click
-							#if get_parent().first_click:
-							#	move_mine(map_pos)
-							#	generate_numbers()
-							#	process_left_click(map_pos)
 							#otherwise end the game
-							#else:
 							end_game.emit()
 							show_mines()
 							# MANDAR MENSAGEM "FIM DE JOGO"
@@ -179,7 +170,6 @@ func update_flags(received_flags: Array):
 
 func process_left_click(pos):
 	#no longer first click
-	#get_parent().first_click = false
 	var revealed_cells := []
 	var cells_to_reveal := [pos]
 	while not cells_to_reveal.is_empty():
@@ -307,6 +297,7 @@ func end_turn():
 	for f in flag_coords:
 		to_send.append([f.x, f.y])
 	multiplayer.send_flags(to_send)
-	multiplayer.start_opponent_turn()
+	#multiplayer.start_opponent_turn()
+	multiplayer.socket.put_packet(JSON.stringify(multiplayer.message("START_ROUND")).to_utf8_buffer())
 	clicked = false
 	turn_active = false

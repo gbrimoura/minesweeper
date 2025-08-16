@@ -1,12 +1,12 @@
 [gd_scene load_steps=8 format=3 uid="uid://dww7376cibolg"]
 
 [ext_resource type="Texture2D" uid="uid://fi8q2wvpqd47" path="res://assets/bg.png" id="1_muiut"]
-[ext_resource type="Script" path="res://scenes/main.gd" id="1_sgikt"]
+[ext_resource type="Script" uid="uid://4bnbl4oe1g6f" path="res://scenes/main.gd" id="1_sgikt"]
 [ext_resource type="PackedScene" uid="uid://eyxfen2vvqxo" path="res://scenes/tile_map.tscn" id="3_lemmq"]
 [ext_resource type="PackedScene" uid="uid://d05640hmpi44l" path="res://scenes/hud.tscn" id="4_lcatd"]
 [ext_resource type="PackedScene" uid="uid://bgqhc6o6lpeui" path="res://scenes/title.tscn" id="4_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://01pxeovkiic5" path="res://scenes/game_over.tscn" id="5_4jsxu"]
-[ext_resource type="Script" path="res://scenes/multiplayer_manager.gd" id="9_choun"]
+[ext_resource type="Script" uid="uid://cv1i6rybtf34f" path="res://scenes/multiplayer_manager.gd" id="9_choun"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_sgikt")

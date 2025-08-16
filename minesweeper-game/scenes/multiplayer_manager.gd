@@ -48,20 +48,19 @@ func receive_message(peer):
 
 func handle_message(msg):
 	var received_message = JSON.parse_string(msg)
-	print(received_message)
 	match received_message["op"]:
 		"JOIN":
 			joined_peer = socket.get_packet_ip()
-			print(joined_peer + " JOINED")
+			#print(joined_peer + " JOINED")
 			socket.set_dest_address(joined_peer, PORT)
 			get_parent().new_game()
 			socket.put_packet(JSON.stringify(message("ACCEPT")).to_utf8_buffer())
 			
 			await get_tree().process_frame
-			start_opponent_turn()
+			socket.put_packet(JSON.stringify(message("START_ROUND")).to_utf8_buffer()) # start opponent turn
 		"ACCEPT":
 			host_peer = socket.get_packet_ip()
-			print(host_peer + " ACCEPTED")
+			#print(host_peer + " ACCEPTED")
 			get_parent().get_node('TileMap').received_coords = received_message["mines"]
 			get_parent().new_game()
 		"REJECT":
@@ -90,12 +89,5 @@ func _process(delta: float) -> void:
 	if socket.get_available_packet_count() > 0:
 		var array_bytes = socket.get_packet()
 		var packet_string = array_bytes.get_string_from_ascii()
-		print("Received message: ", packet_string)
+		#print("Received message: ", packet_string)
 		handle_message(packet_string)
-
-func start_opponent_turn():
-	var msg = {
-	"v": 1,
-	"op": "START_ROUND"
-	}
-	socket.put_packet(JSON.stringify(msg).to_utf8_buffer())

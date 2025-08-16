@@ -63,13 +63,13 @@ func generate_mines():
 				mine_pos = Vector2i(randi_range(0, COLS - 1), randi_range(0, ROWS - 1))
 		else:
 			var coord_str = received_coords[i]
-			print(coord_str)
 			coord_str = coord_str.replace("(", "")
 			coord_str = coord_str.replace(")", "")
 			coord_str = coord_str.replace(",", "")
-			print(coord_str + "PARSED")
-			var x = int(coord_str.left(coord_str.find(" ")))
-			var y = int(coord_str.right(coord_str.find(" ")))
+			print(coord_str)
+			var parts = coord_str.split(" ")
+			var x = int(parts[0])
+			var y = int(parts[1])
 			print(str(x) + " " + str(y))
 			mine_pos = Vector2i(x, y)
 		mine_coords.append(mine_pos)

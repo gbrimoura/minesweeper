@@ -169,7 +169,6 @@ func _input(event):
 			turn_active = false
 		
 func update_flags(received_flags: Array):
-	turn_active = false  # bloqueia tabuleiro
 	clear_layer(flag_layer)
 	flag_coords.clear()
 
@@ -212,9 +211,7 @@ func process_right_click(pos):
 			if is_flag(pos):
 				erase_cell(flag_layer, pos)
 				flag_removed.emit()
-				for i in len(flag_coords):
-					if flag_coords[i] == pos:
-						flag_coords.pop_at(i)
+				flag_coords.erase(pos)
 			else:
 				set_cell(flag_layer, pos, tile_id, flag_atlas)
 				flag_coords.append(pos)

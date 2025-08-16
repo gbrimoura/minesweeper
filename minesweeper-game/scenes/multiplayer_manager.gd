@@ -10,7 +10,7 @@ var joined_peer: String
 
 func host():
 	ishost = true
-	socket.bind(PORT)
+	socket.bind(PORT, "127.0.0.1")
 	socket.set_broadcast_enabled(true)
 	multiplayer.multiplayer_peer = socket 
 #	get_tree().set_network_peer(peer)
@@ -19,7 +19,7 @@ func host():
 func join(destiny):
 	ishost = false
 	host_peer = destiny
-	socket.bind(PORT) # Para receber mensagens
+	socket.bind(PORT, "127.0.0.2") # Para receber mensagens
 	socket.set_broadcast_enabled(true)
 	socket.set_dest_address(host_peer, PORT)
 	socket.put_packet(JSON.stringify(message("JOIN")).to_utf8_buffer())

@@ -37,11 +37,16 @@ func message(op:String, flags: Array = [], flags_remaining: int = -1):
 			pass
 		"UPDATE_FLAGS":
 			msg["flags"] = flags
+<<<<<<< HEAD
 			msg["flags_remaining"] = flags_remaining
 		"SYNC_FLAGS":
 			# Nova mensagem para sincronização inicial de flags
 			msg["flags"] = flags
 			msg["flags_remaining"] = flags_remaining
+=======
+		"SEND_LOSE":
+			pass
+>>>>>>> e55270c16056878dc9b65790a03d2c5e08c06b02
 	
 	return msg
 
@@ -93,8 +98,12 @@ func handle_message(msg):
 			get_parent().get_node("HUD/PressEnter").text = "YOUR TURN"
 			
 		"SEND_LOSE":
+<<<<<<< HEAD
 			pass
 			
+=======
+			get_parent().get_node('TileMap').lose()
+>>>>>>> e55270c16056878dc9b65790a03d2c5e08c06b02
 		"UPDATE_FLAGS":
 			var tilemap = get_parent().get_node("TileMap")
 			# Sincronizar todas as flags (compartilhadas)
@@ -120,6 +129,7 @@ func handle_message(msg):
 		"ERROR":
 			pass
 
+<<<<<<< HEAD
 func send_flag_update(flags: Array, flags_remaining: int):
 	# Função específica para envio de atualizações de flags
 	print("Enviando flags: ", flags, " - Restantes: ", flags_remaining)  # Debug
@@ -127,6 +137,9 @@ func send_flag_update(flags: Array, flags_remaining: int):
 	socket.put_packet(JSON.stringify(message_data).to_utf8_buffer())
 
 func _process(delta: float) -> void:
+=======
+func _process(_delta: float) -> void:
+>>>>>>> e55270c16056878dc9b65790a03d2c5e08c06b02
 	if socket.get_available_packet_count() > 0:
 		var array_bytes = socket.get_packet()
 		var packet_string = array_bytes.get_string_from_ascii()

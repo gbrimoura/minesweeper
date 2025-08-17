@@ -32,12 +32,8 @@ func message(op:String, flags: Array = []):
 	match op:
 		"ACCEPT":
 			msg["mines"] = get_parent().get_node("TileMap").mine_coords
-		"START_ROUND":
-			pass
 		"UPDATE_FLAGS":
 			msg["flags"] = flags
-		"SEND_LOSE":
-			pass
 	
 	return msg
 
@@ -65,8 +61,6 @@ func handle_message(msg):
 			#print(host_peer + " ACCEPTED")
 			get_parent().get_node('TileMap').received_coords = received_message["mines"]
 			get_parent().new_game()
-		"REJECT":
-			pass
 		"START_ROUND":
 			var tilemap = get_parent().get_node("TileMap")
 			tilemap.start_turn()
@@ -80,10 +74,8 @@ func handle_message(msg):
 			await get_tree().process_frame
 			tilemap.start_turn()
 			get_parent().get_node("HUD/PressEnter").text = "YOUR TURN"
-		"SEND_COMPLETED":
-			pass
 		"SEND_WIN":
-			pass
+			get_parent().end_game(1)
 		"ERROR":
 			pass
 

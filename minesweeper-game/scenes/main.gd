@@ -51,6 +51,8 @@ func _on_tile_map_end_game():
 
 func _on_tile_map_game_won():
 	end_game(1)
+	var mp = $MultiplayerManager
+	mp.socket.put_packet(JSON.stringify(mp.message("SEND_WIN")).to_utf8_buffer())
 	
 func _on_game_over_restart():
 	$Title.show()

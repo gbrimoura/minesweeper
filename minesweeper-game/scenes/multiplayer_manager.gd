@@ -36,6 +36,8 @@ func message(op:String, flags: Array = []):
 			pass
 		"UPDATE_FLAGS":
 			msg["flags"] = flags
+		"SEND_LOSE":
+			pass
 	
 	return msg
 
@@ -70,7 +72,7 @@ func handle_message(msg):
 			tilemap.start_turn()
 			get_parent().get_node("HUD/PressEnter").text = "YOUR TURN"
 		"SEND_LOSE":
-			pass
+			get_parent().get_node('TileMap').lose()
 		"UPDATE_FLAGS":
 			var tilemap = get_parent().get_node("TileMap")
 			tilemap.update_flags(received_message["flags"])
@@ -85,7 +87,7 @@ func handle_message(msg):
 		"ERROR":
 			pass
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if socket.get_available_packet_count() > 0:
 		var array_bytes = socket.get_packet()
 		var packet_string = array_bytes.get_string_from_ascii()

@@ -136,10 +136,11 @@ func _input(event):
 						if is_mine(map_pos):
 							#check if it is the first click
 							#otherwise end the game
-							end_game.emit()
-							show_mines()
+							lose()
 							# MANDAR MENSAGEM "FIM DE JOGO"
-						else:
+							var mp = get_parent().get_node("MultiplayerManager")
+							mp.socket.put_packet(JSON.stringify(mp.message("SEND_LOSE")).to_utf8_buffer())
+						elif is_grass(map_pos):
 							process_left_click(map_pos)
 							get_parent().get_node("HUD/PressEnter").text = "PRESS ENTER"
 							clicked = true
@@ -147,12 +148,12 @@ func _input(event):
 				elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 					process_right_click(map_pos)
 		elif event is InputEventKey and event.pressed and event.keycode == KEY_ENTER and clicked:
-			var multiplayer = get_parent().get_node("MultiplayerManager")
+			var mp = get_parent().get_node("MultiplayerManager")
 			var to_send = []
 			for f in flag_coords:
 				to_send.append([f.x, f.y]) # serializa como array de arrays
 			#multiplayer.send_flags(to_send)
-			multiplayer.socket.put_packet(JSON.stringify(multiplayer.message(
+			mp.socket.put_packet(JSON.stringify(mp.message(
 				"UPDATE_FLAGS",
 				to_send
 			)).to_utf8_buffer())
@@ -165,8 +166,14 @@ func update_flags(received_flags: Array):
 
 	for f in received_flags:
 		var pos = Vector2i(f[0], f[1])
-		set_cell(flag_layer, pos, tile_id, flag_atlas)
-		flag_coords.append(pos)
+		#set_cell(flag_layer, pos, tile_id, flag_atlas)
+		#flag_coords.append(pos)
+		process_right_click(pos, true) # Um viva à gambiarra
+	get_parent()._update_flags(flag_coords)
+
+func lose():
+	end_game.emit()
+	show_mines()
 
 func process_left_click(pos):
 	#no longer first click
@@ -192,9 +199,9 @@ func process_left_click(pos):
 	if all_cleared:
 		game_won.emit()
 
-func process_right_click(pos):
+func process_right_click(pos, updating: bool = false):
 	#check if it is a grass cell
-	if not turn_active:
+	if not turn_active and not updating: # checar se os "cliques" não são da atualização
 		return
 	else:
 		if is_grass(pos):
@@ -202,10 +209,15 @@ func process_right_click(pos):
 				erase_cell(flag_layer, pos)
 				flag_removed.emit()
 				flag_coords.erase(pos)
-			else:
+			elif get_parent().remaining_mines != 0:
 				set_cell(flag_layer, pos, tile_id, flag_atlas)
 				flag_coords.append(pos)
 				flag_placed.emit()
+		else:
+			if is_flag(pos):
+				erase_cell(flag_layer, pos)
+				flag_removed.emit()
+				flag_coords.erase(pos)
 
 func reveal_surrounding_cells(cells_to_reveal, revealed_cells):
 	for i in get_all_surrounding_cells(cells_to_reveal[0]):
@@ -234,7 +246,7 @@ func move_mine(old_pos):
 				get_parent().first_click = false
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	highlight_cell()
 	#scan mines
 	if (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and 
@@ -292,12 +304,12 @@ func start_turn():
 	clicked = false
 	
 func end_turn():
-	var multiplayer = get_parent().get_node("MultiplayerManager")
+	var mp = get_parent().get_node("MultiplayerManager")
 	var to_send = []
 	for f in flag_coords:
 		to_send.append([f.x, f.y])
-	multiplayer.send_flags(to_send)
+	mp.send_flags(to_send)
 	#multiplayer.start_opponent_turn()
-	multiplayer.socket.put_packet(JSON.stringify(multiplayer.message("START_ROUND")).to_utf8_buffer())
+	mp.socket.put_packet(JSON.stringify(multiplayer.message("START_ROUND")).to_utf8_buffer())
 	clicked = false
 	turn_active = false

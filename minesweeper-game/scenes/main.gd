@@ -23,7 +23,7 @@ func new_game():
 	get_tree().paused = false
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	#$HUD.get_node("Stopwatch").text = str(int(time_elapsed))
 	$HUD.get_node("RemainingMines").text = str(remaining_mines)
 
@@ -42,6 +42,9 @@ func _on_tile_map_flag_placed():
 
 func _on_tile_map_flag_removed():
 	remaining_mines += 1
+	
+func _update_flags(flag_array: Array):
+	remaining_mines = TOTAL_MINES - len(flag_array)
 
 func _on_tile_map_end_game():
 	end_game(-1)

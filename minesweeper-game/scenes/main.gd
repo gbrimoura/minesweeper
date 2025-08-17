@@ -12,6 +12,10 @@ func _ready():
 	$GameOver.hide()
 	$TileMap.hide()
 	$HUD.hide()
+	
+	# Conectar o novo sinal para sincronizar flags
+	$TileMap.flags_updated.connect(_on_tile_map_flags_updated)
+
 func new_game():
 	remaining_mines = TOTAL_MINES
 	$TileMap.new_game()
@@ -37,11 +41,18 @@ func end_game(result):
 		# mandar mensagem de jogo perdido, também encerrar a partida
 		$GameOver.get_node("Label").text = "BOOM!"
 
+# Nova função para sincronizar flags entre TileMap e Main
+func _on_tile_map_flags_updated(remaining_flags: int):
+	remaining_mines = remaining_flags
+
+# Manter as funções antigas para compatibilidade (caso sejam usadas em outros lugares)
 func _on_tile_map_flag_placed():
-	remaining_mines -= 1
+	# Esta função agora é redundante, mas mantida por compatibilidade
+	pass
 
 func _on_tile_map_flag_removed():
-	remaining_mines += 1
+	# Esta função agora é redundante, mas mantida por compatibilidade
+	pass
 
 func _on_tile_map_end_game():
 	end_game(-1)
@@ -58,7 +69,6 @@ func _on_game_over_restart():
 	$GameOver.hide()
 	$TileMap.hide()
 	
-
 func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ENTER:
 		if not $TileMap.clicked:

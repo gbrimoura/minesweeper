@@ -4,6 +4,7 @@ signal end_game
 signal game_won
 signal flag_placed
 signal flag_removed
+signal flags_updated(remaining_flags: int)  # Novo sinal para sincronização
 
 #grid variables
 const ROWS : int = 14
@@ -18,7 +19,7 @@ var mine_layer : int = 0
 var number_layer : int = 1
 var grass_layer : int = 2
 var flag_layer : int = 3
-var hover_layer : int = 4
+var hover_layer : int = 4  # Voltou ao índice original
 
 #atlas coordinates
 var mine_atlas := Vector2i(4, 0)
@@ -28,8 +29,12 @@ var number_atlas : Array = generate_number_atlas()
 
 #array to store mine coordinates
 var mine_coords := []
-var flag_coords := []
+var flag_coords := []  # Flags compartilhadas entre jogadores
 var received_coords := []
+
+# Controle de flags
+var total_flags := 0  # Total de flags disponíveis
+var flags_remaining := 0  # Flags restantes para colocar
 
 #toggle variable to scan nearby mines
 var scanning := false
@@ -54,6 +59,11 @@ func new_game():
 	generate_numbers()
 	generate_grass()
 	flag_coords = []
+	
+	# Inicializar contagem de flags
+	total_flags = get_parent().TOTAL_MINES
+	flags_remaining = total_flags
+	update_flag_counter()
 	
 	turn_active = false
 	clicked = false
@@ -134,11 +144,8 @@ func _input(event):
 					if not is_flag(map_pos):
 						#check if it is a mine
 						if is_mine(map_pos):
-							#check if it is the first click
-							#otherwise end the game
 							end_game.emit()
 							show_mines()
-							# MANDAR MENSAGEM "FIM DE JOGO"
 						else:
 							process_left_click(map_pos)
 							get_parent().get_node("HUD/PressEnter").text = "PRESS ENTER"
@@ -147,29 +154,45 @@ func _input(event):
 				elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 					process_right_click(map_pos)
 		elif event is InputEventKey and event.pressed and event.keycode == KEY_ENTER and clicked:
-			var multiplayer = get_parent().get_node("MultiplayerManager")
-			var to_send = []
-			for f in flag_coords:
-				to_send.append([f.x, f.y]) # serializa como array de arrays
-			#multiplayer.send_flags(to_send)
-			multiplayer.socket.put_packet(JSON.stringify(multiplayer.message(
-				"UPDATE_FLAGS",
-				to_send
-			)).to_utf8_buffer())
-			clicked = false
-			turn_active = false
-		
+			send_turn_data()
+			get_parent().get_node("HUD/PressEnter").text = "WAITING FOR OPPONENT"
+
+func send_turn_data():
+	var multiplayer = get_parent().get_node("MultiplayerManager")
+	var to_send = []
+	for f in flag_coords:
+		to_send.append([f.x, f.y])
+	
+	multiplayer.send_flag_update(to_send, flags_remaining)
+	clicked = false
+	turn_active = false
+
 func update_flags(received_flags: Array):
+	# Atualizar flags compartilhadas
+	print("Recebendo flags: ", received_flags)  # Debug
 	clear_layer(flag_layer)
 	flag_coords.clear()
 
+	# Adicionar todas as flags recebidas
 	for f in received_flags:
 		var pos = Vector2i(f[0], f[1])
 		set_cell(flag_layer, pos, tile_id, flag_atlas)
 		flag_coords.append(pos)
+	
+	print("Total de flags após atualização: ", flag_coords.size())  # Debug
+
+func update_flag_counter():
+	# Emitir sinal para atualizar a HUD
+	flags_updated.emit(flags_remaining)
+	
+	# Debug
+	print("FLAGS RESTANTES: ", flags_remaining)
+
+func sync_all_flags(all_flags: Array):
+	# Função para sincronização completa de flags compartilhadas
+	update_flags(all_flags)
 
 func process_left_click(pos):
-	#no longer first click
 	var revealed_cells := []
 	var cells_to_reveal := [pos]
 	while not cells_to_reveal.is_empty():
@@ -179,6 +202,7 @@ func process_left_click(pos):
 		#if the cell had a flag then clear it
 		if is_flag(cells_to_reveal[0]):
 			erase_cell(flag_layer, cells_to_reveal[0])
+			flag_coords.erase(cells_to_reveal[0])
 			flag_removed.emit()
 		if not is_number(cells_to_reveal[0]):
 			cells_to_reveal = reveal_surrounding_cells(cells_to_reveal, revealed_cells)
@@ -193,19 +217,27 @@ func process_left_click(pos):
 		game_won.emit()
 
 func process_right_click(pos):
-	#check if it is a grass cell
 	if not turn_active:
 		return
-	else:
-		if is_grass(pos):
-			if is_flag(pos):
-				erase_cell(flag_layer, pos)
-				flag_removed.emit()
-				flag_coords.erase(pos)
-			else:
+		
+	if is_grass(pos):
+		if is_flag(pos):
+			# Remover flag
+			erase_cell(flag_layer, pos)
+			flag_coords.erase(pos)
+			flags_remaining += 1
+			update_flag_counter()
+			flag_removed.emit()
+		else:
+			# Colocar flag apenas se ainda houver flags disponíveis
+			if flags_remaining > 0:
 				set_cell(flag_layer, pos, tile_id, flag_atlas)
 				flag_coords.append(pos)
+				flags_remaining -= 1
+				update_flag_counter()
 				flag_placed.emit()
+			else:
+				print("Sem flags disponíveis!")  # Debug
 
 func reveal_surrounding_cells(cells_to_reveal, revealed_cells):
 	for i in get_all_surrounding_cells(cells_to_reveal[0]):
@@ -292,12 +324,5 @@ func start_turn():
 	clicked = false
 	
 func end_turn():
-	var multiplayer = get_parent().get_node("MultiplayerManager")
-	var to_send = []
-	for f in flag_coords:
-		to_send.append([f.x, f.y])
-	multiplayer.send_flags(to_send)
-	#multiplayer.start_opponent_turn()
-	multiplayer.socket.put_packet(JSON.stringify(multiplayer.message("START_ROUND")).to_utf8_buffer())
-	clicked = false
+	send_turn_data()
 	turn_active = false

@@ -21,7 +21,7 @@ func join(destiny):
 	socket.put_packet(JSON.stringify(message("JOIN")).to_utf8_buffer())
 	print("TRYING TO JOIN " + host_peer)
 
-func message(op:String, flags: Array = []):
+func message(op:String, flags: Array = [], flags_remaining: int = -1):
 	var msg := {
 		"v": 1,
 		"op": op,
@@ -32,10 +32,16 @@ func message(op:String, flags: Array = []):
 	match op:
 		"ACCEPT":
 			msg["mines"] = get_parent().get_node("TileMap").mine_coords
+			msg["total_flags"] = get_parent().TOTAL_MINES  # Enviar total de flags
 		"START_ROUND":
 			pass
 		"UPDATE_FLAGS":
 			msg["flags"] = flags
+			msg["flags_remaining"] = flags_remaining
+		"SYNC_FLAGS":
+			# Nova mensagem para sincronização inicial de flags
+			msg["flags"] = flags
+			msg["flags_remaining"] = flags_remaining
 	
 	return msg
 
@@ -47,37 +53,66 @@ func receive_message(peer):
 			handle_message(parsed)
 
 func handle_message(msg):
-	var received_message = JSON.parse_string(msg)
+	var received_message
+	# Corrigir parsing duplo - msg já pode estar parseado
+	if typeof(msg) == TYPE_STRING:
+		received_message = JSON.parse_string(msg)
+	else:
+		received_message = msg
+		
+	if typeof(received_message) != TYPE_DICTIONARY:
+		print("Erro: mensagem inválida recebida")
+		return
+		
 	match received_message["op"]:
 		"JOIN":
 			joined_peer = socket.get_packet_ip()
-			#print(joined_peer + " JOINED")
 			socket.set_dest_address(joined_peer, PORT)
 			get_parent().new_game()
 			socket.put_packet(JSON.stringify(message("ACCEPT")).to_utf8_buffer())
 			
 			await get_tree().process_frame
-			socket.put_packet(JSON.stringify(message("START_ROUND")).to_utf8_buffer()) # start opponent turn
+			socket.put_packet(JSON.stringify(message("START_ROUND")).to_utf8_buffer())
+			
 		"ACCEPT":
 			host_peer = socket.get_packet_ip()
-			#print(host_peer + " ACCEPTED")
-			get_parent().get_node('TileMap').received_coords = received_message["mines"]
+			var tilemap = get_parent().get_node('TileMap')
+			tilemap.received_coords = received_message["mines"]
+			# Sincronizar total de flags se recebido
+			if received_message.has("total_flags"):
+				tilemap.total_flags = received_message["total_flags"]
+				tilemap.flags_remaining = received_message["total_flags"]
 			get_parent().new_game()
+			
 		"REJECT":
 			pass
+			
 		"START_ROUND":
 			var tilemap = get_parent().get_node("TileMap")
 			tilemap.start_turn()
 			get_parent().get_node("HUD/PressEnter").text = "YOUR TURN"
+			
 		"SEND_LOSE":
 			pass
+			
 		"UPDATE_FLAGS":
 			var tilemap = get_parent().get_node("TileMap")
+			# Sincronizar todas as flags (compartilhadas)
 			tilemap.update_flags(received_message["flags"])
+			# Sincronizar contagem de flags restantes
+			if received_message.has("flags_remaining"):
+				tilemap.flags_remaining = received_message["flags_remaining"]
+				tilemap.update_flag_counter()
 			
 			await get_tree().process_frame
 			tilemap.start_turn()
 			get_parent().get_node("HUD/PressEnter").text = "YOUR TURN"
+			
+		"SYNC_FLAGS":
+			# Sincronização inicial de flags compartilhadas
+			var tilemap = get_parent().get_node("TileMap")
+			tilemap.update_flags(received_message["flags"])
+			
 		"SEND_COMPLETED":
 			pass
 		"SEND_WIN":
@@ -85,9 +120,14 @@ func handle_message(msg):
 		"ERROR":
 			pass
 
+func send_flag_update(flags: Array, flags_remaining: int):
+	# Função específica para envio de atualizações de flags
+	print("Enviando flags: ", flags, " - Restantes: ", flags_remaining)  # Debug
+	var message_data = message("UPDATE_FLAGS", flags, flags_remaining)
+	socket.put_packet(JSON.stringify(message_data).to_utf8_buffer())
+
 func _process(delta: float) -> void:
 	if socket.get_available_packet_count() > 0:
 		var array_bytes = socket.get_packet()
 		var packet_string = array_bytes.get_string_from_ascii()
-		#print("Received message: ", packet_string)
 		handle_message(packet_string)

@@ -4,29 +4,30 @@ const PORT = 12345 # porta para comunicações do servidor
 
 var socket = PacketPeerUDP.new()
 var is_host: bool = true
-var host_peer: String
-var joined_peer: String
+#var host_peer: String
+#var joined_peer: String
+var peer: String
 
 func host():
 	is_host = true
-	socket.bind(PORT, "127.0.0.1")
+	socket.bind(PORT, get_parent().address)
 	socket.set_broadcast_enabled(true)
 
 func join(destiny):
 	is_host = false
-	host_peer = destiny
-	socket.bind(PORT, "127.0.0.2") # Para receber mensagens
+	peer = destiny
+	socket.bind(PORT, get_parent().address) # Para receber mensagens
 	socket.set_broadcast_enabled(true)
-	socket.set_dest_address(host_peer, PORT)
+	socket.set_dest_address(peer, PORT)
 	socket.put_packet(JSON.stringify(message("JOIN")).to_utf8_buffer())
-	print("TRYING TO JOIN " + host_peer)
+	print("TRYING TO JOIN " + peer)
 
 func message(op:String, flags: Array = []):
 	var msg := {
 		"v": 1,
 		"op": op,
-		"from": "nao implementado",
-		"to" : "nao implementado"
+		"from": get_parent().address,
+		"to" : peer
 	}
 	
 	match op:
@@ -35,6 +36,7 @@ func message(op:String, flags: Array = []):
 		"UPDATE_FLAGS":
 			msg["flags"] = flags
 	
+	print(msg)
 	return msg
 
 func receive_message(peer):
@@ -48,16 +50,16 @@ func handle_message(msg):
 	var received_message = JSON.parse_string(msg)
 	match received_message["op"]:
 		"JOIN":
-			joined_peer = socket.get_packet_ip()
+			peer = socket.get_packet_ip()
 			#print(joined_peer + " JOINED")
-			socket.set_dest_address(joined_peer, PORT)
+			socket.set_dest_address(peer, PORT)
 			get_parent().new_game()
 			socket.put_packet(JSON.stringify(message("ACCEPT")).to_utf8_buffer())
 			
 			await get_tree().process_frame
 			socket.put_packet(JSON.stringify(message("START_ROUND")).to_utf8_buffer()) # start opponent turn
 		"ACCEPT":
-			host_peer = socket.get_packet_ip()
+			peer = socket.get_packet_ip()
 			#print(host_peer + " ACCEPTED")
 			get_parent().get_node('TileMap').received_coords = received_message["mines"]
 			get_parent().new_game()
@@ -83,5 +85,5 @@ func _process(_delta: float) -> void:
 	if socket.get_available_packet_count() > 0:
 		var array_bytes = socket.get_packet()
 		var packet_string = array_bytes.get_string_from_ascii()
-		#print("Received message: ", packet_string)
+		print("Received message: ", packet_string)
 		handle_message(packet_string)

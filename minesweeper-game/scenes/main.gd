@@ -5,6 +5,7 @@ const TOTAL_MINES : int = 20
 var remaining_mines : int
 var active_turn : bool
 var is_host : bool
+var address
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -12,6 +13,10 @@ func _ready():
 	$GameOver.hide()
 	$TileMap.hide()
 	$HUD.hide()
+	var interfaces = IP.get_local_interfaces()
+	for d in interfaces:
+		if d["name"] == "eno1": #Funciona exclusivamente com a rede da UFPel
+			address = d["addresses"][0] 
 func new_game():
 	remaining_mines = TOTAL_MINES
 	$TileMap.new_game()
@@ -68,3 +73,9 @@ func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ENTER:
 		if not $TileMap.clicked:
 			$HUD/PressEnter.text = ""
+			
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		var mp = $MultiplayerManager
+		mp.socket.put_packet(JSON.stringify(mp.message("SEND_LOSE")).to_utf8_buffer())
+		get_tree().quit() # default behavior

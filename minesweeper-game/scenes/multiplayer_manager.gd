@@ -24,7 +24,6 @@ func join(destiny):
 
 func message(type:String, flags: Array = []):
 	var msg := {
-		"v": 1,
 		"type": type,
 		"from": get_parent().address,
 		"to" : peer,

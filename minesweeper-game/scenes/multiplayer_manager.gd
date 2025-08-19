@@ -8,15 +8,15 @@ var peer: String
 
 func host():
 	is_host = true
-	#socket.bind(PORT, get_parent().address)
-	socket.bind(PORT, '127.0.0.1')
+	socket.bind(PORT, get_parent().address)
+	#socket.bind(PORT, '127.0.0.1')
 	socket.set_broadcast_enabled(true)
 
 func join(destiny):
 	is_host = false
 	peer = destiny
-	#socket.bind(PORT, get_parent().address) # Para receber mensagens
-	socket.bind(PORT, '127.0.0.2')
+	socket.bind(PORT, get_parent().address) # Para receber mensagens
+	#socket.bind(PORT, '127.0.0.2')
 	socket.set_broadcast_enabled(true)
 	socket.set_dest_address(peer, PORT)
 	socket.put_packet(JSON.stringify(message("handshake")).to_utf8_buffer())

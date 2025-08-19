@@ -139,7 +139,7 @@ func _input(event):
 							lose()
 							# MANDAR MENSAGEM "FIM DE JOGO"
 							var mp = get_parent().get_node("MultiplayerManager")
-							mp.socket.put_packet(JSON.stringify(mp.message("SEND_LOSE")).to_utf8_buffer())
+							mp.socket.put_packet(JSON.stringify(mp.message("game_lose")).to_utf8_buffer())
 						elif is_grass(map_pos):
 							process_left_click(map_pos)
 							get_parent().get_node("HUD/PressEnter").text = "PRESS ENTER"
@@ -154,7 +154,7 @@ func _input(event):
 				to_send.append([f.x, f.y]) # serializa como array de arrays
 			#multiplayer.send_flags(to_send)
 			mp.socket.put_packet(JSON.stringify(mp.message(
-				"UPDATE_FLAGS",
+				"flag_updated",
 				to_send
 			)).to_utf8_buffer())
 			clicked = false
@@ -310,6 +310,6 @@ func end_turn():
 		to_send.append([f.x, f.y])
 	mp.send_flags(to_send)
 	#multiplayer.start_opponent_turn()
-	mp.socket.put_packet(JSON.stringify(multiplayer.message("START_ROUND")).to_utf8_buffer())
+	mp.socket.put_packet(JSON.stringify(multiplayer.message("player_ready")).to_utf8_buffer())
 	clicked = false
 	turn_active = false

@@ -3,7 +3,7 @@ extends CanvasLayer
 func _on_host_pressed() -> void:
 	get_parent().get_node("MultiplayerManager").host()
 	get_parent().get_node("HUD").show()
-	get_parent().get_node("HUD/PressEnter").text = get_parent().address
+	#get_parent().get_node("HUD/PressEnter").text = get_parent().address
 
 func _on_join_pressed() -> void:
 	$TextEdit.show()

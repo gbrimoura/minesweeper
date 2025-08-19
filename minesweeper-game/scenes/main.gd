@@ -38,9 +38,11 @@ func end_game(result):
 	if result == 1:
 		# se o parceiro já ganhou, encerrar a partida. Senão, mandar mensagem de jogo "meio ganho"
 		$GameOver.get_node("Label").text = "YOU WIN!"
-	else:
+	elif result == -1:
 		# mandar mensagem de jogo perdido, também encerrar a partida
 		$GameOver.get_node("Label").text = "BOOM!"
+	else:
+		$GameOver.get_node("Label").text = "DISCONNECTED"
 
 func _on_tile_map_flag_placed():
 	remaining_mines -= 1
@@ -57,7 +59,7 @@ func _on_tile_map_end_game():
 func _on_tile_map_game_won():
 	end_game(1)
 	var mp = $MultiplayerManager
-	mp.socket.put_packet(JSON.stringify(mp.message("SEND_WIN")).to_utf8_buffer())
+	mp.socket.put_packet(JSON.stringify(mp.message("game_win")).to_utf8_buffer())
 	
 func _on_game_over_restart():
 	$Title.show()
@@ -77,5 +79,5 @@ func _input(event):
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		var mp = $MultiplayerManager
-		mp.socket.put_packet(JSON.stringify(mp.message("SEND_LOSE")).to_utf8_buffer())
+		mp.socket.put_packet(JSON.stringify(mp.message("disconnect")).to_utf8_buffer())
 		get_tree().quit() # default behavior
